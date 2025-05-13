@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: Beyond Presence API
+  description: API for managing avatars and real-time sessions in Beyond Presence.
+  version: 1.0.0
+servers:
+  - url: https://api.bey.dev
+    description: Production server
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    Avatar:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 01234567-89ab-cdef-0123-456789abcdef
+        name:
+          type: string
+          example: John Doe
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: abcdef12-3456-7890-abcd-ef1234567890
+        status:
+          type: string
+          example: active
+        created_at:
+          type: string
+          format: date-time
+          example: 2025-05-13T14:30:00Z
+        avatar_id:
+          type: string
+          format: uuid
+          example: 01234567-89ab-cdef-0123-456789abcdef
+        livekit_url:
+          type: string
+          example: wss://your-domain.livekit.cloud
+        livekit_token:
+          type: string
+          example: your-livekit-token
+security:
+  - ApiKeyAuth: []
+paths:
+  /v1/avatar:
+    get:
+      summary: List Avatars
+      description: Retrieve all avatars accessible with the provided API key.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: A list of avatars.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Avatar"
+  /v1/session:
+    post:
+      summary: Create Session
+      description: Initiate a new real-time session.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        description: Session creation parameters.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - avatar_id
+                - livekit_url
+                - livekit_token
+              properties:
+                avatar_id:
+                  type: string
+                  format: uuid
+                  example: 01234567-89ab-cdef-0123-456789abcdef
+                  description: The ID of the avatar to use in this session
+                livekit_url:
+                  type: string
+                  example: wss://your-domain.livekit.cloud
+                  description: The LiveKit URL for the WebRTC room
+                livekit_token:
+                  type: string
+                  example: your-livekit-token
+                  description: The LiveKit token for room authentication
+      responses:
+        "201":
+          description: Session created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+    get:
+      summary: List Sessions
+      description: Retrieve all sessions associated with the API key.
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: A list of sessions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Session"
+  /v1/session/{session_id}:
+    get:
+      summary: Get Session
+      description: Retrieve details of a specific session by its ID.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          description: Unique identifier of the session.
+          schema:
+            type: string
+            format: uuid
+            example: abcdef12-3456-7890-abcd-ef1234567890
+      responses:
+        "200":
+          description: Session details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
